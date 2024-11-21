@@ -1,0 +1,131 @@
+---
+- name: installing db server (plus GUI version)
+  hosts: db
+  become: yes
+  vars:
+    mariadb_root_password: "password"
+    db_name: "nations"
+    db_table: "country"
+    db_data:
+      - { countrycode: 'BE', countryname: 'Belgium', population: 11000000, countrycapital: 'Brussels' }
+      - { countrycode: 'DE', countryname: 'Germany', population: 82000000, countrycapital: 'Berlin' }
+      - { countrycode: 'JP', countryname: 'Japan', population: 128000000, countrycapital: 'Tokyo' }
+
+  tasks:
+    - name: installing mariadb packages
+      yum:
+        name:
+          - mariadb-server
+          - mariadb
+          - python3-PyMySQL
+    
+    - name: starting mariadb service
+      service:
+        name: mariadb
+        enabled: true
+        state: started
+      tags: 
+        - service
+
+    - name: setting root password
+      shell: |
+        mysqladmin -u root password "{{ mariadb_root_password }}"
+      args:
+        creates: /root/.my.cnf
+      ignore_errors: true
+
+    - name: creating "nations" database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+    
+    - name: Create 'country' table in 'nations' database
+      mysql_query:
+        query: >
+          CREATE TABLE IF NOT EXISTS {{ db_table }} (
+            countrycode CHAR(3) NOT NULL,
+            countryname VARCHAR(70) NOT NULL,
+            population INT,
+            countrycapital VARCHAR(50),
+            PRIMARY KEY (countrycode)
+            );
+        login_db: "{{ db_name }}"
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+
+    - name: Insert data into 'country' table
+      mysql_query:
+        query: >
+          INSERT INTO {{ db_table }} (countrycode, countryname, population, countrycapital)
+          VALUES ("{{ item.countrycode }}", "{{ item.countryname }}", "{{ item.population }}", "{{ item.countrycapital }}")
+          ON DUPLICATE KEY UPDATE
+          countryname=VALUES(countryname), population=VALUES(population), countrycapital=VALUES(countrycapital);
+        login_db: "{{ db_name }}"
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+      loop: "{{ db_data }}"
+
+    - name: query from table
+      mysql_query:
+        query: "SELECT * FROM {{ db_table }};"
+        login_db: "{{ db_name }}"
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+      register: query_result
+
+    - name: display result
+      debug:
+        var: query_result
+    
+    - name: installing httpd
+      yum:
+        name: httpd
+        state: present
+    
+    - name: starting and enabling httpd
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: installing epel-release
+      yum:
+        name: epel-release
+        state: present
+
+    - name: installing necessary packages
+      yum:
+        name:
+          - php
+          - phpmyadmin
+        state: present
+
+    - name: configuring /etc/httpd/conf/httpd.conf
+      template:
+        src: httpd.j2
+        dest: /etc/httpd/conf/httpd.conf
+        backup: yes
+
+    - name: configuring /etc/httpd/conf.d/phpMyAdmin.conf
+      template:
+        src: php.j2
+        dest: /etc/httpd/conf.d/phpMyAdmin.conf
+        backup: yes
+    
+    - name: restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+    - name: opening firewall for http
+      firewalld:
+        service: http
+        state: enabled
+        permanent: true
+
+    - name: restarting firewalld
+      service:
+        name: firewalld
+        state: restarted

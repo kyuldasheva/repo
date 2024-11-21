@@ -1,0 +1,10 @@
+---
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted
+
+- name: restarting firewalld
+  service:
+    name: firewalld
+    state: restarted

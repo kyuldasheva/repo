@@ -1,0 +1,6 @@
+---
+- name: installing db server (plus GUI version)
+  hosts: db
+  become: yes
+  roles:
+    - db_server

@@ -1,0 +1,26 @@
+---
+- name: instaling chrony and setting up configuration file
+  hosts: db 
+  become: yes
+  tasks:
+    - name: installing chrony
+      yum:
+        name: chrony
+        state: present
+
+    - name: startingronyd service
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+
+    - name: configuring chrony.conf with templates
+      template:
+        src: /home/ansible/ansible/chrony.j2
+        dest: /etc/chrony.conf
+
+    - name: restarting chronyd service
+      service:
+        name: chronyd
+        state: restarted
+        enabled: yes

@@ -1,0 +1,13 @@
+---
+- name: copy file and put some content
+  hosts: db
+  become: yes
+  tasks:
+    - name: create a file and put some content in it
+      copy:
+        dest: "/home/ansible/{{ item.filename }}"
+        content: "{{ item.content }}"
+      loop:
+        - { filename: 'hello.txt', content: 'hello ziyo' }
+        - { filename: 'goodbye.txt', content: 'goodbye ziyo' }
+

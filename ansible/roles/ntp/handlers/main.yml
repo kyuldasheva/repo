@@ -1,0 +1,10 @@
+---
+- name: restart "{{ package }}"
+  service:
+    name: "{{ package }}d"
+    state: restarted
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted

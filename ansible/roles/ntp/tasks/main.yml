@@ -1,0 +1,37 @@
+---
+- name: installing "{{ package }}"
+  yum:
+    name: "{{ package }}"
+    state: present
+
+- name: starting "{{ package }}d" service
+  service:
+    name: "{{ package}}d"
+    state: started
+    enabled: yes
+
+- name: configuring /etc/chrony.conf
+  template:
+    src: chrony.j2
+    dest: /etc/chrony.conf
+    backup: yes
+  notify: restart "{{ package }}"
+
+- name: ensure that firewalld is running
+  service:
+    name: firewalld
+    state: started 
+    enabled: yes
+
+- name: opening firewall port 123/udp
+  firewalld: 
+    port: 123/udp
+    state: enabled
+    permanent: true
+    immediate: yes
+  notify: restart firewalld
+
+- name: copying example.txt to /home/ansible
+  copy:
+    src: example.txt
+    dest: /home/ansible/example.txt

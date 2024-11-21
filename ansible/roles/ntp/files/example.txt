@@ -1,0 +1,2 @@
+this shoul be located in /home/ansible directory
+this is our first role

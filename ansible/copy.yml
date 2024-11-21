@@ -1,0 +1,9 @@
+---
+- name: copy file
+  hosts: db
+  become: yes
+  tasks:
+    - name: copy a file to a client node
+      copy:
+        src: /home/ansible//ansible/test.txt
+        dest: /home/ansible/changed_test.txt

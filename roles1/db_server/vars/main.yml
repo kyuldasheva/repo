@@ -1,0 +1,9 @@
+---
+mariadb_root_password: "password"
+db_name: "nations"
+db_table: "country"
+db_data:
+  - { countrycode: 'BE', countryname: 'Belgium', population: 11000000, countrycapital: 'Brussels' }
+  - { countrycode: 'DE', countryname: 'Germany', population: 82000000, countrycapital: 'Berlin' }
+  - { countrycode: 'JP', countryname: 'Japan', population: 128000000, countrycapital: 'Tokyo' }
+

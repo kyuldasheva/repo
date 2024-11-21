@@ -1,0 +1,15 @@
+$TTL 1D
+@       IN SOA                          ky-dns-ans.ziyotek.local. root.ky-dns-ans.ziyotek.local. (
+                                        2024110901      ; serial
+                                        1D              ; refresh
+                                        1H              ; retry
+                                        1W              ; expire
+                                        3H )            ; minimum
+
+; DNS servers
+        IN      NS      ky-dns-ans.ziyotek.local.
+        IN      NS      ky-dns2-ans.ziyotek.local.
+
+; PTR records for DNS clients
+105     IN      PTR     ky-dns-ans.ziyotek.local.
+96     IN      PTR     kyuldasheva-web-01.ziyotek.local.

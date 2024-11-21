@@ -1,0 +1,13 @@
+---
+- name: Install "{{ package }}"
+  yum:
+    name: "{{ package }}"
+    state: present
+ 
+- name: Open firewall port 80 for HTTP
+  firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  notify: Restart firewalld

@@ -1,0 +1,17 @@
+---
+- name: Setup Apache Web Server
+  hosts: db
+  become: yes
+  vars:
+    package: httpd
+  tasks:
+    - name: Install httpd package
+      yum:
+        name: "{{ package }}"
+        state: present
+ 
+    - name: Ensure httpd service is running and enabled
+      service:
+        name:  "{{ package }}"
+        state: started
+        enabled: yes

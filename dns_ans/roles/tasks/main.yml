@@ -1,0 +1,81 @@
+---
+- name: Install EPEL repository
+  yum:
+    name: epel-release
+    state: present
+
+- name: Install BIND and utilities
+  yum:
+    name:
+      - bind
+      - bind-utils
+    state: present
+
+- name: Configure named.conf
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    mode: '0644'
+
+- name: Configure forward lookup zone
+  template:
+    src: ziyotek.flz.j2
+    dest: /var/named/ziyotek.flz
+    mode: '0644'
+
+- name: Configure reverse lookup zone
+  template:
+    src: ziyotek.rlz.j2
+    dest: /var/named/ziyotek.rlz
+    mode: '0644'
+
+- name: Check named.conf for syntax errors 
+  command: named-checkconf /etc/named.conf
+  register: checkconf_result
+
+- name: displaying the result from checkconf result
+  debug:
+    var: checkconf_result
+
+- name: Check forward lookup zone file 
+  command: named-checkzone ziyotek.local /var/named/ziyotek.flz 
+  register: checkzone_result
+
+- name: displaying the result from checkzone result
+  debug:
+    var: checkzone_result
+
+- name: Check reverse lookup zone file 
+  command: named-checkzone 101.168.192.in-addr.arpa /var/named/ziyotek.rlz 
+  register: checkreverse_result
+
+- name: displaying the result from checkreverse result
+  debug:
+    var: checkreverse_result
+
+- name: Check all configuration files for syntax errors 
+  command: named-checkconf -zj
+  register: checkall_result
+
+- name: displaying the result from checkall result
+  debug:
+    var: checkall_result
+
+- name: Configure firewall to allow DNS
+  firewalld:
+    service: dns
+    state: enabled
+    permanent: true
+  notify: Restart firewalld
+
+- name: Configure resolv.conf for DNS servers
+  lineinfile:
+    path: /etc/resolv.conf
+    state: present
+    create: yes
+    line: "{{ item }}"
+  with_items:
+    - "search ziyotek.local"
+    - "nameserver 127.0.0.1"
+    - "nameserver 192.168.101.105"
+  notify: Restart named

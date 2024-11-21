@@ -1,0 +1,12 @@
+---
+- name: copy file and put some content
+  hosts: db
+  become: yes
+  tasks:
+    - name: create a file and put some content in it
+      file:
+        path: "/tmp/{{ item.filename }}"
+        state: touch
+      loop:
+        - { filename: 'file1.txt', content: 'content for file1' }
+        - { filename: 'file2.txt', content: 'content for file2' }
